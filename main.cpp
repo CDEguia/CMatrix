@@ -17,10 +17,11 @@ void render(deque<map<int, Code> > &matrix);
 int msleep(unsigned long milisec)
 {
     struct timespec req={0};
-    time_t sec=(int)(milisec/1000);
-    milisec=milisec-(sec*1000);
+    int speedAdjustment = 1000; // slow: 100; fast: 250; default: 1000
+    time_t sec=(int)(milisec/speedAdjustment);
+    milisec=milisec-(sec*speedAdjustment);
     req.tv_sec=sec;
-    req.tv_nsec=milisec*1000000L;
+    req.tv_nsec=milisec*speedAdjustment*1000L;
     while(nanosleep(&req,NULL)==-1)
         continue;
     return 1;
