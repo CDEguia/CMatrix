@@ -17,7 +17,7 @@ void render(deque<map<int, Code> > &matrix);
 int msleep(unsigned long milisec)
 {
     struct timespec req={0};
-    int speedAdjustment = 1000; // Lower = Faster; default = 1000
+    int speedAdjustment = 1000; // slow: 100; fast: 250; default: 1000
     time_t sec=(int)(milisec/speedAdjustment);
     milisec=milisec-(sec*speedAdjustment);
     req.tv_sec=sec;
