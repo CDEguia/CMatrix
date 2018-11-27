@@ -5,6 +5,7 @@
 #include<sys/ioctl.h>
 #include<map>
 #include<deque>
+#include<unistd.h> //for getopt
 using namespace std;
 
 typedef struct{
@@ -13,6 +14,11 @@ typedef struct{
 }Code;
 
 void render(deque<map<int, Code> > &matrix);
+
+void usage(void) {
+  printf(" Usage: cmatrix -[h]\n"); // "[abBfhlsVx] [-u delay] [-C color]" to be added
+  printf(" -h: Prints this help menu\n");
+}
 
 int msleep(unsigned long milisec)
 {
@@ -27,19 +33,32 @@ int msleep(unsigned long milisec)
     return 1;
 }
 
-int main(void){
+int main(int argc, char **argv){
   static const char alpha[] =
     "0123456789"
     "!@#$%^&*"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   int alphaSize = sizeof(alpha)/sizeof(char);
-  cout<<alphaSize;
+  //cout<<alphaSize;
+  int optchr;
+
+/* Get Options */
+while ((optchr = getopt(argc, argv, "abBfhlLnrosxVu:C:")) != EOF) {
+  switch (optchr) {
+    case 'h':
+    case '?':
+    usage();
+    exit(0);
+  }
+}
+
   // get terminal size
   struct winsize w;
   ioctl(0, TIOCGWINSZ, &w);
   int col_size = w.ws_col;
   int row_size = w.ws_row;
   //cout<< col_size<< " "<<row_size<<endl;
+  
   deque<map<int, Code> > matrix;
   matrix.push_front(map<int,Code>());
   for(;;){
