@@ -117,9 +117,10 @@ void render(deque<map<int, Code> > &matrix, int speed){
 }
 
 void usage(void) {
-  printf(" Usage: cmatrix -[h] [-s speed]\n"); // "[abBfhlsVx] [-u delay] [-C color]" to be added
+  printf("\n Usage: CMatrix -[h] [-s speed]\n"); // "[abBfhlsVx] [-u delay] [-C color]" to be added
   printf(" -h: Prints this help menu\n");
-  printf(" -s: delay (0 - 200, default 100): Screen update speed \n");
+  printf(" -s: delay (0 - 10, default 5): Screen update speed \n");
+  printf("\n");
 }
 
 int msleep(unsigned long milisec){
