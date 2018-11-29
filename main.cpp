@@ -6,6 +6,7 @@
 #include<map>
 #include<deque>
 #include<unistd.h> //for getopt
+#include <string.h> //for color
 using namespace std;
 
 typedef struct{
@@ -13,7 +14,7 @@ typedef struct{
   int live;
 }Code;
 
-void render(deque<map<int, Code> > &matrix, int alphaSize);
+void render(deque<map<int, Code> > &matrix, int speed);
 
 void usage(void); 
 
@@ -22,15 +23,17 @@ int msleep(unsigned long milisec);
 int main(int argc, char *argv[]){
   static const char alpha[] =
       "0123456789"
-      "!@#$%^&*"
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      "!@#$%^&*()_+-=`~<>?:{}|\\\"[],./;'"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      " abcdefghijklmnopqrstuvwxyz";
   int alphaSize = sizeof(alpha) / sizeof(char);
   //cout<<alphaSize;
-  int optchr;
+  int optchr, input;
   int speed = 5; // default fall speed.
+  printf("\033[0m"); //set to default text color
 
   /* Get Options */
-  while ((optchr = getopt(argc, argv, "abBfhlLnroxVs:u:C:")) != EOF)
+  while ((optchr = getopt(argc, argv, "hus:C:")) != EOF)
   {
     switch (optchr)
     {
@@ -38,15 +41,37 @@ int main(int argc, char *argv[]){
     case '?':
       usage();
       exit(0);
+
+    case 'u':
+      alphaSize -= 26;
+      break;
     case 's':
-      int input = atoi(optarg);
-      if (0 <= input && input <= 10){
-        speed = atoi(optarg);
+      input = atoi(optarg);
+      if (0 <= input && input <= 10)
+      {
+        speed = input;
         break;
-      } else{
+      }
+      else
+      {
         printf("Input out of range.\n");
         exit(0);
       }
+      break;
+    case 'C':
+      switch (optarg[0])
+      {
+      case 'r':
+        printf("\033[0;31m");
+        break;
+      case 'g':
+        printf("\033[0;32m");
+        break;
+      default:
+        printf("Color code not recognized");
+        exit(0);
+      }
+      break;
     }
   }
 
@@ -62,8 +87,8 @@ int main(int argc, char *argv[]){
   for (;;)
   {
     map<int, Code> new_map = matrix[0];
-    int new_col = rand() % col_size + 1;  // set column size proportional to screen height
-    int new_live = rand() % row_size + 1;
+    int new_col = rand() % col_size + 1;  // set column size proportional to screen width
+    int new_live = rand() % row_size + 1; // sets column length restricted by screen height
     Code empty_code = {'0', new_live};
     new_map[new_col] = empty_code;
     
@@ -99,7 +124,7 @@ void render(deque<map<int, Code> > &matrix, int speed){
   // clear screen
   printf("\033[2J\033[1;1H");
   // render
-  for(int i = 0; i<matrix.size(); i++){
+  for(int i = 0; i < matrix.size(); i++){
     for(map<int,Code>::iterator it = matrix[i].begin(); it!=matrix[i].end(); it++){
       int print_col = it->first;
       Code print_code = it->second;
@@ -117,9 +142,11 @@ void render(deque<map<int, Code> > &matrix, int speed){
 }
 
 void usage(void) {
-  printf("\n Usage: CMatrix -[h] [-s speed]\n"); // "[abBfhlsVx] [-u delay] [-C color]" to be added
+  printf("\n Usage: CMatrix -[hu] [-s speed] [-C color]\n"); // "[abBfhlsVx] [-u delay] [-C color]" to be added
   printf(" -h: Prints this help menu\n");
   printf(" -s: delay (0 - 10, default 5): Screen update speed \n");
+  printf(" -u: no lower case letters\n");
+  printf(" -C: print in color ie green, red, \n");
   printf("\n");
 }
 
