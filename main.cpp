@@ -19,7 +19,7 @@ typedef struct
 // Initialize functions
 //
 
-void render(deque<map<int, Code>> &matrix, int speed);
+void render(deque<map<int, Code>> &matrix, int speed, char color);
 
 void usage(void);
 
@@ -43,9 +43,10 @@ int main(int argc, char *argv[])
   int optchr, input;
   int speed = 5;     // default fall speed.
   printf("\033[0m"); //set to default text color
+  char color; // set rainbow off
 
   /* Get Options */
-  while ((optchr = getopt(argc, argv, "hunbs:C:")) != EOF)
+  while ((optchr = getopt(argc, argv, "hunbRs:C:")) != EOF)
   {
     switch (optchr)
     {
@@ -53,6 +54,9 @@ int main(int argc, char *argv[])
       case '?':
         usage();
         exit(0);
+      case 'R':
+        color = 'R';
+        break;
       case 'u':
         alphaSize -= 26;
         break;
@@ -126,7 +130,7 @@ int main(int argc, char *argv[])
       matrix.erase(matrix.begin() + row_size, matrix.end());
     }
 
-    render(matrix, speed);
+    render(matrix, speed, color);
   }
   msleep(1000L);
   return 0;
@@ -136,24 +140,33 @@ int main(int argc, char *argv[])
 // Functions
 //
 
-void render(deque<map<int, Code>> &matrix, int speed)
+void render(deque<map<int, Code>> &matrix, int speed, char color)
 {
-  
+
   printf("\033[2J\033[1;1H"); // clear screen
   // render
+  int c = 31;
   for (int i = 0; i < matrix.size(); i++)
   {
     for (map<int, Code>::iterator it = matrix[i].begin(); it != matrix[i].end(); it++)
     {
       int print_col = it->first;
       Code print_code = it->second;
+
+      //Create random character at the top of the screen and bottom of each colum.
       //     if (it == matrix[i].begin()){
       //           printf("\033[%d;%dH",i,print_col);//, 0, print_col);
       //            printf("%c\n", rand()%sizeof(char));
       //      }else{
+
+      //Rainbow color
+      if (color == 'R'){
+        printf("\033[%dm", c++);
+        if(c > 37) c=31;
+      }
+
       printf("\033[%d;%dH", i, print_col); //, 0, print_col);
       printf("%c", print_code.c);
-      //      }
     }
   }
   fflush(stdout);
@@ -162,11 +175,12 @@ void render(deque<map<int, Code>> &matrix, int speed)
 
 void usage(void)
 {
-  printf("\n Usage: CMatrix -[hunb] [-s speed] [-C color]\n"); // "[abBfhlsVx] [-u delay] [-C color]" to be added
+  printf("\n Usage: CMatrix -[hunbR] [-s speed] [-C color]\n"); // "[abBfhlsVx] [-u delay] [-C color]" to be added
   printf(" -h: Prints this (h)elp menu\n");
   printf(" -b: (b)old\n");
   printf(" -u: no lower case letters\n");
   printf(" -n: (n)umbers only\n");
+  printf(" -R: (R)ainbow colors\n");
   printf(" -s: (s)peed (0 - 10; default 5)\n");
   printf(" -C: (C)olor {(g)reen, (r)ed, (b)lue, (y)ellow, (c)yan, (m)agenta}\n");
   printf("\n");
