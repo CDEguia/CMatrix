@@ -6,7 +6,6 @@
 #include <map>
 #include <deque>
 #include <unistd.h> //for getopt
-#include <string.h> //for color
 using namespace std;
 
 typedef struct
@@ -19,7 +18,7 @@ typedef struct
 // Initialize functions
 //
 
-void render(deque<map<int, Code>> &matrix, int speed, char color);
+void render(deque<map<int, Code>> &matrix, char color);
 
 void usage(void);
 
@@ -27,20 +26,15 @@ int msleep(unsigned long milisec);
 
 void setcolor(char colorcode);
 
+char getrandchar(int modifier);
+
 //
 // Main loop
 //
 
 int main(int argc, char *argv[])
 {
-  static const char alpha[] =
-      "0123456789"
-      "!@#$%^&*()_+-=`~<>?:{}|\\\"[],./;'"
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      " abcdefghijklmnopqrstuvwxyz";
-  int alphaSize = sizeof(alpha) / sizeof(char);
-  //cout<<alphaSize;
-  int optchr, input;
+  int optchr, input, charmod;
   int speed = 5;     // default fall speed.
   printf("\033[0m"); //set to default text color
   char color; // set rainbow off
@@ -58,10 +52,10 @@ int main(int argc, char *argv[])
         color = 'R';
         break;
       case 'u':
-        alphaSize -= 26;
+        charmod = 26;
         break;
       case 'n':
-        alphaSize -= 86;
+        charmod = 86;
         break;
       case 's':
         input = atoi(optarg);
@@ -95,7 +89,6 @@ int main(int argc, char *argv[])
   ioctl(0, TIOCGWINSZ, &w);
   int col_size = w.ws_col;
   int row_size = w.ws_row;
-  //cout<< col_size<< " "<<row_size<<endl;
 
   deque<map<int, Code>> matrix;
   matrix.push_front(map<int, Code>());
@@ -109,10 +102,10 @@ int main(int argc, char *argv[])
 
     for (map<int, Code>::iterator it = new_map.begin(); it != new_map.end();)
     {
-      int new_c = alpha[rand() % alphaSize];
+      int new_c = getrandchar(charmod);
       it->second.c = new_c;
       it->second.live--;
-      // clear 0 live code
+      
       if (it->second.live == 0)
       {
         new_map.erase(it);
@@ -130,7 +123,8 @@ int main(int argc, char *argv[])
       matrix.erase(matrix.begin() + row_size, matrix.end());
     }
 
-    render(matrix, speed, color);
+    render(matrix, color);
+    msleep(speed * 20);
   }
   msleep(1000L);
   return 0;
@@ -140,7 +134,7 @@ int main(int argc, char *argv[])
 // Functions
 //
 
-void render(deque<map<int, Code>> &matrix, int speed, char color)
+void render(deque<map<int, Code>> &matrix, char color)
 {
 
   printf("\033[2J\033[1;1H"); // clear screen
@@ -153,24 +147,32 @@ void render(deque<map<int, Code>> &matrix, int speed, char color)
       int print_col = it->first;
       Code print_code = it->second;
 
-      //Create random character at the top of the screen and bottom of each colum.
-      //     if (it == matrix[i].begin()){
-      //           printf("\033[%d;%dH",i,print_col);//, 0, print_col);
-      //            printf("%c\n", rand()%sizeof(char));
-      //      }else{
-
-      //Rainbow color
+      // Rainbow color
       if (color == 'R'){
         printf("\033[%dm", c++);
         if(c > 37) c=31;
       }
 
       printf("\033[%d;%dH", i, print_col); //, 0, print_col);
-      printf("%c", print_code.c);
+
+      if  (i==1 || i == matrix.size()-1){ // first and list line on screen are random characters
+        printf("%c", getrandchar(0));
+      }else{
+        printf("%c", print_code.c);
+      }
     }
   }
   fflush(stdout);
-  msleep(speed * 20);
+}
+
+char getrandchar(int modifier){
+  static const char alpha[] =
+      "0123456789"
+      "!@#$%^&*()_+-=`~<>?:{}|\\\"[],./;'"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      " abcdefghijklmnopqrstuvwxyz";
+  int alphaSize = sizeof(alpha) / sizeof(char);
+  return alpha[rand() % (alphaSize-modifier)];
 }
 
 void usage(void)
